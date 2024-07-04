@@ -1,117 +1,172 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+'use client';
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
+import React, {useState} from 'react';
 import {
-  SafeAreaView,
+  Alert,
+  Button,
+  Dimensions,
+  FlatList,
+  Image,
+  Modal,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
-  useColorScheme,
+  TextInput,
   View,
 } from 'react-native';
+import {get} from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
+import getLocationData from './src/components/location_check';
+import getWeatherData from './src/components/location_check';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+function ListItemRender({dataItem}: any) {
+  return <Text>{dataItem.text}</Text>;
+}
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+function App(): React.JSX.Element {
+  async function getLocationData(location: string) {
+    let urlString =
+      'https://geocoding-api.open-meteo.com/v1/search?name=' +
+      location +
+      '&count=10&language=en&format=json';
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+    let response = await fetch(urlString);
+    let results = await response.json();
+
+    let coordinates = [
+      results.results[0].latitude,
+      results.results[0].longitude,
+      results.results[0].country,
+    ];
+
+    // console.log(coordinates);
+    return coordinates;
+  }
+
+  async function getWeatherData(latitude: number, longitude: number) {
+    let urlString =
+      'https://api.open-meteo.com/v1/forecast?latitude=' +
+      latitude +
+      '&longitude=' +
+      longitude +
+      '&current=temperature_2m,apparent_temperature,is_day,weather_code&daily=weather_code';
+
+    let response = await fetch(urlString);
+    let results = await response.json();
+
+    let weatherData = [
+      results.current.temperature_2m,
+      results.current.apparent_temperature,
+      results.current.is_day,
+      results.current.weather_code,
+    ];
+
+    return weatherData;
+  }
+
+  const handleAsync = async () => {
+    console.log(city);
+    let locationData = await getLocationData(city);
+    setLatitude(locationData[0]);
+    setLongitude(locationData[1]);
+    setCountry(locationData[2]);
+    console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
+    let weather = await getWeatherData(latitude, longitude);
+    setTemperature(weather[0]);
+    weather = [];
+  };
+
+  const handlePress = () => {
+    setTemperature(0);
+    setCountry('');
+    setLatitude(0);
+    setLongitude(0);
+    handleAsync();
+  };
+
+  const handleCityChange = (event: any) => {
+    setCity(event.nativeEvent.text);
+  };
+
+  const dataArray = [];
+
+  for (let i = 0; i < 100; i++) {
+    let item = {id: i, text: `Item ${i}`};
+    dataArray.push(item);
+  }
+
+  let darkModeEnabled = true;
+
+  let dinamicStyles = darkModeEnabled ? styles.darkMode : styles.lightMode;
+
+  let windowDimensions = Dimensions.get('window');
+
+  const [latitude, setLatitude] = useState(0);
+  const [longitude, setLongitude] = useState(0);
+  const [country, setCountry] = useState('');
+  const [city, setCity] = useState('');
+  const [temperature, setTemperature] = useState(0);
+
   return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
+    <View style={{...dinamicStyles, ...styles.container}}>
+      <Text style={styles.myCustomText}>Check the weather!</Text>
+
+      <Image
+        style={styles.myCustomImage}
+        source={require('./src/assets/clear.png')}
+      />
+      <Text style={styles.myLabelTest}>Enter city:</Text>
+      <TextInput style={styles.inputBox} onChange={handleCityChange} />
+      <Text style={styles.myFecthData}>Country: {country}</Text>
+      <Text style={styles.myFecthData}>Latitude: {latitude}</Text>
+      <Text style={styles.myFecthData}>Longitude: {longitude}</Text>
+      <Text style={styles.inputBox}>Temperature: {temperature}</Text>
+      <Button title="Press me" onPress={handlePress} />
     </View>
   );
 }
 
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  sectionTitle: {
+  myCustomText: {
+    fontSize: 30,
+    color: '#55AA55',
+    // textAlign: 'center',
+  },
+  darkMode: {
+    backgroundColor: '#333333',
+  },
+  lightMode: {
+    backgroundColor: '#DDDDDD',
+  },
+  myCustomImage: {
+    width: 200,
+    height: 200,
+    alignItems: 'center',
+    margin: 10,
+  },
+  inputBox: {
+    borderBlockColor: 'red',
+    backgroundColor: 'gray',
     fontSize: 24,
-    fontWeight: '600',
+    width: 300,
+    padding: 3,
+    margin: 12,
   },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
+  myLabelTest: {
+    color: '#000000',
+    backgroundColor: '#FFFFFF',
+    width: 300,
+    alignContent: 'center',
   },
-  highlight: {
-    fontWeight: '700',
+  myFecthData: {
+    color: '#FFFFFF',
+    backgroundColor: '#000000',
+    width: 250,
+    alignContent: 'center',
   },
 });
 
