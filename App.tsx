@@ -1,6 +1,6 @@
 'use client';
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Alert,
   Button,
@@ -17,6 +17,7 @@ import {
 import {get} from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 import getLocationData from './src/components/location_check';
 import getWeatherData from './src/components/location_check';
+import GetLocation from 'react-native-get-location';
 
 function ListItemRender({dataItem}: any) {
   return <Text>{dataItem.text}</Text>;
@@ -42,6 +43,8 @@ function App(): React.JSX.Element {
     return coordinates;
   }
 
+  //load current device location coordinates into the app
+
   async function getWeatherData(latitude: number, longitude: number) {
     let urlString =
       'https://api.open-meteo.com/v1/forecast?latitude=' +
@@ -62,6 +65,18 @@ function App(): React.JSX.Element {
 
     return weatherData;
   }
+
+  GetLocation.getCurrentPosition({
+    enableHighAccuracy: true,
+    timeout: 60000,
+  })
+    .then(location => {
+      console.log(location);
+    })
+    .catch(error => {
+      const {code, message} = error;
+      console.warn(code, message);
+    });
 
   const handleAsync = async () => {
     console.log(city);
@@ -105,6 +120,16 @@ function App(): React.JSX.Element {
   const [country, setCountry] = useState('');
   const [city, setCity] = useState('');
   const [temperature, setTemperature] = useState(0);
+
+  useEffect(() => {
+    (async () => {
+      if (country !== '') {
+        let weather = await getWeatherData(latitude, longitude);
+        setTemperature(weather[0]);
+        weather = [];
+      }
+    })();
+  }, [country]);
 
   return (
     <View style={{...dinamicStyles, ...styles.container}}>
