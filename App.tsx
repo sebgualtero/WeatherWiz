@@ -66,70 +66,64 @@ function App(): React.JSX.Element {
     return weatherData;
   }
 
-  GetLocation.getCurrentPosition({
-    enableHighAccuracy: true,
-    timeout: 60000,
-  })
-    .then(location => {
-      console.log(location);
-    })
-    .catch(error => {
-      const {code, message} = error;
-      console.warn(code, message);
-    });
-
-  const handleAsync = async () => {
-    console.log(city);
-    let locationData = await getLocationData(city);
-    setLatitude(locationData[0]);
-    setLongitude(locationData[1]);
-    setCountry(locationData[2]);
-    console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
-    let weather = await getWeatherData(latitude, longitude);
-    setTemperature(weather[0]);
-    weather = [];
-  };
-
-  const handlePress = () => {
-    setTemperature(0);
-    setCountry('');
-    setLatitude(0);
-    setLongitude(0);
-    handleAsync();
-  };
-
-  const handleCityChange = (event: any) => {
-    setCity(event.nativeEvent.text);
-  };
-
-  const dataArray = [];
-
-  for (let i = 0; i < 100; i++) {
-    let item = {id: i, text: `Item ${i}`};
-    dataArray.push(item);
-  }
-
-  let darkModeEnabled = true;
-
-  let dinamicStyles = darkModeEnabled ? styles.darkMode : styles.lightMode;
-
-  let windowDimensions = Dimensions.get('window');
+  //function can be used to get the device location
+  // const getDeviceLocation = () => {
+  //   GetLocation.getCurrentPosition({
+  //     enableHighAccuracy: true,
+  //     timeout: 60000,
+  //   })
+  //     .then(location => {
+  //       console.log(location);
+  //     })
+  //     .catch(error => {
+  //       const {code, message} = error;
+  //       console.warn(code, message);
+  //     });
+  // };
 
   const [latitude, setLatitude] = useState(0);
   const [longitude, setLongitude] = useState(0);
   const [country, setCountry] = useState('');
   const [city, setCity] = useState('');
   const [temperature, setTemperature] = useState(0);
+  const [inputCity, setInputCity] = useState('');
+
+  //getDeviceLocation(); breaks as it will keep calling the function - unkonwn cause
+
+  const handlePress = () => {
+    setCity(inputCity);
+  };
+
+  const handleInputCityChange = (event: any) => {
+    setInputCity(event.nativeEvent.text);
+  };
+
+  let darkModeEnabled = true;
+
+  let dinamicStyles = darkModeEnabled ? styles.darkMode : styles.lightMode;
 
   useEffect(() => {
     (async () => {
-      if (country !== '') {
+      if (city !== '') {
+        let locationData = await getLocationData(city);
+        setLatitude(locationData[0]);
+        setLongitude(locationData[1]);
+        setCountry(locationData[2]);
+      }
+    })();
+  }, [city]);
+
+  useEffect(() => {
+    (async () => {
+      if (latitude !== 0 && longitude !== 0) {
         let weather = await getWeatherData(latitude, longitude);
         setTemperature(weather[0]);
         weather = [];
+        console.log(`City: ${city}`);
+        console.log(`latitude: ${latitude} longitude: ${longitude}`);
       }
     })();
-  }, [country]);
+  }, [latitude, longitude]);
 
   return (
     <View style={{...dinamicStyles, ...styles.container}}>
@@ -140,7 +134,11 @@ function App(): React.JSX.Element {
         source={require('./src/assets/clear.png')}
       />
       <Text style={styles.myLabelTest}>Enter city:</Text>
-      <TextInput style={styles.inputBox} onChange={handleCityChange} />
+      <TextInput
+        style={styles.inputBox}
+        onChange={handleInputCityChange} // Update inputCity state
+        value={inputCity}
+      />
       <Text style={styles.myFecthData}>Country: {country}</Text>
       <Text style={styles.myFecthData}>Latitude: {latitude}</Text>
       <Text style={styles.myFecthData}>Longitude: {longitude}</Text>
