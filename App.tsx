@@ -18,6 +18,9 @@ import {get} from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 import getLocationData from './src/components/location_check';
 import getWeatherData from './src/components/location_check';
 import GetLocation from 'react-native-get-location';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import CitiesScreen from './Cities';
 
 function ListItemRender({dataItem}: any) {
   return <Text>{dataItem.text}</Text>;
@@ -66,20 +69,31 @@ function App(): React.JSX.Element {
     return weatherData;
   }
 
-  //function can be used to get the device location
-  // const getDeviceLocation = () => {
-  //   GetLocation.getCurrentPosition({
-  //     enableHighAccuracy: true,
-  //     timeout: 60000,
-  //   })
-  //     .then(location => {
-  //       console.log(location);
-  //     })
-  //     .catch(error => {
-  //       const {code, message} = error;
-  //       console.warn(code, message);
-  //     });
-  // };
+ 
+  const getDeviceLocation = () => {
+    GetLocation.getCurrentPosition({
+      enableHighAccuracy: true,
+     timeout: 60000,
+   })
+      .then(location => {
+
+        setLatitude(location.latitude);
+        setLongitude(location.longitude);
+        
+        let weather =  getWeatherData(latitude, longitude);
+
+        
+
+       console.log(location);
+      })
+     .catch(error => {
+        const {code, message} = error;
+        console.warn(code, message);
+       });
+
+
+
+   };
 
   const [latitude, setLatitude] = useState(0);
   const [longitude, setLongitude] = useState(0);
@@ -88,8 +102,21 @@ function App(): React.JSX.Element {
   const [temperature, setTemperature] = useState(0);
   const [inputCity, setInputCity] = useState('');
 
-  //getDeviceLocation(); breaks as it will keep calling the function - unkonwn cause
+ 
+  useEffect(() => {
 
+    getDeviceLocation();
+    (async () => {
+     
+  
+        let weather = await getWeatherData(latitude, longitude);
+        setTemperature(weather[0]);
+        weather = [];
+        console.log(`City: ${city}`);
+        console.log(`latitude: ${latitude} longitude: ${longitude}`);
+      
+    })();
+  }, [city]);
   const handlePress = () => {
     setCity(inputCity);
   };
@@ -124,7 +151,8 @@ function App(): React.JSX.Element {
       }
     })();
   }, [latitude, longitude]);
-
+  const Stack = createNativeStackNavigator();
+  
   return (
     <View style={{...dinamicStyles, ...styles.container}}>
       <Text style={styles.myCustomText}>Check the weather!</Text>
@@ -144,6 +172,9 @@ function App(): React.JSX.Element {
       <Text style={styles.myFecthData}>Longitude: {longitude}</Text>
       <Text style={styles.inputBox}>Temperature: {temperature}</Text>
       <Button title="Press me" onPress={handlePress} />
+
+      
+     
     </View>
   );
 }
