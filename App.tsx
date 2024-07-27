@@ -15,108 +15,40 @@ import {
   View,
 } from 'react-native';
 import {get} from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
-import getLocationData from './src/components/location_check';
-import getWeatherData from './src/components/location_check';
+import { getLocationData, getWeatherData } from './src/components/location_check';
 import GetLocation from 'react-native-get-location';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import CitiesScreen from './Cities';
+import funFacts from './src/res/facts.json';
 
 function ListItemRender({dataItem}: any) {
   return <Text>{dataItem.text}</Text>;
 }
 
-function App(): React.JSX.Element {
-  async function getLocationData(location: string) {
-    let urlString =
-      'https://geocoding-api.open-meteo.com/v1/search?name=' +
-      location +
-      '&count=10&language=en&format=json';
+  //function can be used to get the device location
+  // const getDeviceLocation = () => {
+  //   GetLocation.getCurrentPosition({
+  //     enableHighAccuracy: true,
+  //     timeout: 60000,
+  //   })
+  //     .then(location => {
+  //       console.log(location);
+  //     })
+  //     .catch(error => {
+  //       const {code, message} = error;
+  //       console.warn(code, message);
+  //     });
+  // };
 
-    let response = await fetch(urlString);
-    let results = await response.json();
-
-    let coordinates = [
-      results.results[0].latitude,
-      results.results[0].longitude,
-      results.results[0].country,
-    ];
-
-    // console.log(coordinates);
-    return coordinates;
-  }
-
-  //load current device location coordinates into the app
-
-  async function getWeatherData(latitude: number, longitude: number) {
-    let urlString =
-      'https://api.open-meteo.com/v1/forecast?latitude=' +
-      latitude +
-      '&longitude=' +
-      longitude +
-      '&current=temperature_2m,apparent_temperature,is_day,weather_code&daily=weather_code';
-
-    let response = await fetch(urlString);
-    let results = await response.json();
-
-    let weatherData = [
-      results.current.temperature_2m,
-      results.current.apparent_temperature,
-      results.current.is_day,
-      results.current.weather_code,
-    ];
-
-    return weatherData;
-  }
-
- 
-  const getDeviceLocation = () => {
-    GetLocation.getCurrentPosition({
-      enableHighAccuracy: true,
-     timeout: 60000,
-   })
-      .then(location => {
-
-        setLatitude(location.latitude);
-        setLongitude(location.longitude);
-        
-        let weather =  getWeatherData(latitude, longitude);
-
-        
-
-       console.log(location);
-      })
-     .catch(error => {
-        const {code, message} = error;
-        console.warn(code, message);
-       });
-
-
-
-   };
-
+  function App(): React.JSX.Element {
   const [latitude, setLatitude] = useState(0);
   const [longitude, setLongitude] = useState(0);
   const [country, setCountry] = useState('');
   const [city, setCity] = useState('');
   const [temperature, setTemperature] = useState(0);
   const [inputCity, setInputCity] = useState('');
+  const [funFact, setFunFact] = useState('');
 
- 
-  useEffect(() => {
+  //getDeviceLocation(); breaks as it will keep calling the function - unkonwn cause
 
-    getDeviceLocation();
-    (async () => {
-     
-  
-        let weather = await getWeatherData(latitude, longitude);
-        setTemperature(weather[0]);
-        weather = [];
-        console.log(`City: ${city}`);
-        console.log(`latitude: ${latitude} longitude: ${longitude}`);
-      
-    })();
-  }, [city]);
   const handlePress = () => {
     setCity(inputCity);
   };
@@ -127,34 +59,49 @@ function App(): React.JSX.Element {
 
   let darkModeEnabled = true;
 
-  let dinamicStyles = darkModeEnabled ? styles.darkMode : styles.lightMode;
+  let dynamicStyles = darkModeEnabled ? styles.darkMode : styles.lightMode;
 
   useEffect(() => {
-    (async () => {
+    const fetchLocationData = async () => {
       if (city !== '') {
-        let locationData = await getLocationData(city);
+        const locationData = await getLocationData(city);
         setLatitude(locationData[0]);
         setLongitude(locationData[1]);
         setCountry(locationData[2]);
       }
-    })();
+    };
+
+    fetchLocationData();
   }, [city]);
 
   useEffect(() => {
-    (async () => {
+    const fetchWeatherData = async () => {
       if (latitude !== 0 && longitude !== 0) {
-        let weather = await getWeatherData(latitude, longitude);
+        const weather = await getWeatherData(latitude, longitude);
         setTemperature(weather[0]);
-        weather = [];
         console.log(`City: ${city}`);
         console.log(`latitude: ${latitude} longitude: ${longitude}`);
+
+        // Get the fun fact based on the current temperature
+        const currentFunFact = getFunFactBasedOnTemperature(weather[0]);
+        setFunFact(currentFunFact);
       }
-    })();
+    };
+
+    fetchWeatherData();
   }, [latitude, longitude]);
-  const Stack = createNativeStackNavigator();
-  
+
+  const getFunFactBasedOnTemperature = (temperature: number) => {
+    for (let fact of funFacts) {
+      if (fact.temperature === Math.round(temperature)) {
+        return fact.fun_fact;
+      }
+    }
+    return 'No fun fact available for this temperature.';
+  };
+
   return (
-    <View style={{...dinamicStyles, ...styles.container}}>
+    <View style={{...dynamicStyles, ...styles.container}}>
       <Text style={styles.myCustomText}>Check the weather!</Text>
 
       <Image
@@ -171,13 +118,11 @@ function App(): React.JSX.Element {
       <Text style={styles.myFecthData}>Latitude: {latitude}</Text>
       <Text style={styles.myFecthData}>Longitude: {longitude}</Text>
       <Text style={styles.inputBox}>Temperature: {temperature}</Text>
+      <Text style={styles.myFecthData}>Fun Fact: {funFact}</Text>
       <Button title="Press me" onPress={handlePress} />
-
-      
-     
     </View>
   );
-}
+} 
 
 const styles = StyleSheet.create({
   container: {
