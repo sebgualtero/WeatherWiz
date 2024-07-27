@@ -23,20 +23,8 @@ function ListItemRender({dataItem}: any) {
   return <Text>{dataItem.text}</Text>;
 }
 
-  //function can be used to get the device location
-  // const getDeviceLocation = () => {
-  //   GetLocation.getCurrentPosition({
-  //     enableHighAccuracy: true,
-  //     timeout: 60000,
-  //   })
-  //     .then(location => {
-  //       console.log(location);
-  //     })
-  //     .catch(error => {
-  //       const {code, message} = error;
-  //       console.warn(code, message);
-  //     });
-  // };
+
+
 
   function App(): React.JSX.Element {
   const [latitude, setLatitude] = useState(0);
@@ -48,6 +36,41 @@ function ListItemRender({dataItem}: any) {
   const [funFact, setFunFact] = useState('');
 
   //getDeviceLocation(); breaks as it will keep calling the function - unkonwn cause
+
+
+  const getDeviceLocation = () => {
+    GetLocation.getCurrentPosition({
+      enableHighAccuracy: true,
+      timeout: 60000,
+   })
+      .then(location => {
+        console.log(location);
+        setLatitude(location.latitude);
+        setLongitude(location.longitude);
+
+        let weather =  getWeatherData(latitude, longitude);
+        
+      })
+      .catch(error => {
+        const {code, message} = error;
+        console.warn(code, message);
+      });
+  };
+
+  useEffect(() => {
+
+    getDeviceLocation();
+    (async () => {
+
+
+        let weather = await getWeatherData(latitude, longitude);
+        setTemperature(weather[0]);
+        weather = [];
+        console.log(`City: ${city}`);
+        console.log(`latitude: ${latitude} longitude: ${longitude}`);
+
+    })();
+  }, [city]);
 
   const handlePress = () => {
     setCity(inputCity);
