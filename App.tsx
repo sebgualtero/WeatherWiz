@@ -1,6 +1,6 @@
 'use client';
 
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
   Button,
@@ -14,19 +14,19 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import {get} from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 import { getLocationData, getWeatherData } from './src/components/location_check';
 import GetLocation from 'react-native-get-location';
 import funFacts from './src/res/facts.json';
 
-function ListItemRender({dataItem}: any) {
+function ListItemRender({ dataItem }: any) {
   return <Text>{dataItem.text}</Text>;
 }
 
 
 
 
-  function App(): React.JSX.Element {
+function App(): React.JSX.Element {
   const [latitude, setLatitude] = useState(0);
   const [longitude, setLongitude] = useState(0);
   const [country, setCountry] = useState('');
@@ -42,17 +42,17 @@ function ListItemRender({dataItem}: any) {
     GetLocation.getCurrentPosition({
       enableHighAccuracy: true,
       timeout: 60000,
-   })
+    })
       .then(location => {
         console.log(location);
         setLatitude(location.latitude);
         setLongitude(location.longitude);
 
-        let weather =  getWeatherData(latitude, longitude);
-        
+        let weather = getWeatherData(latitude, longitude);
+
       })
       .catch(error => {
-        const {code, message} = error;
+        const { code, message } = error;
         console.warn(code, message);
       });
   };
@@ -63,11 +63,11 @@ function ListItemRender({dataItem}: any) {
     (async () => {
 
 
-        let weather = await getWeatherData(latitude, longitude);
-        setTemperature(weather[0]);
-        weather = [];
-        console.log(`City: ${city}`);
-        console.log(`latitude: ${latitude} longitude: ${longitude}`);
+      let weather = await getWeatherData(latitude, longitude);
+      setTemperature(weather[0]);
+      weather = [];
+      console.log(`City: ${city}`);
+      console.log(`latitude: ${latitude} longitude: ${longitude}`);
 
     })();
   }, [city]);
@@ -124,71 +124,104 @@ function ListItemRender({dataItem}: any) {
   };
 
   return (
-    <View style={{...dynamicStyles, ...styles.container}}>
-      <Text style={styles.myCustomText}>Check the weather!</Text>
-
+    <View style={{ ...dynamicStyles, ...styles.container }}>
+      <Text style={styles.cityName}>{city}</Text>
+      <Text style={styles.temperature}>{temperature}°</Text>
+      <Text style={styles.weatherDescription}>Sunny</Text>
       <Image
-        style={styles.myCustomImage}
+        style={styles.weatherIcon}
         source={require('./src/assets/clear.png')}
       />
-      <Text style={styles.myLabelTest}>Enter city:</Text>
-      <TextInput
-        style={styles.inputBox}
-        onChange={handleInputCityChange} // Update inputCity state
-        value={inputCity}
-      />
-      <Text style={styles.myFecthData}>Country: {country}</Text>
-      <Text style={styles.myFecthData}>Latitude: {latitude}</Text>
-      <Text style={styles.myFecthData}>Longitude: {longitude}</Text>
-      <Text style={styles.inputBox}>Temperature: {temperature}</Text>
-      <Text style={styles.myFecthData}>Fun Fact: {funFact}</Text>
-      <Button title="Press me" onPress={handlePress} />
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.inputBox}
+          onChange={handleInputCityChange}
+          value={inputCity}
+          placeholder="Enter city"
+        />
+        <Button title="Search" onPress={handlePress} />
+      </View>
+      <View style={styles.weatherDetailsContainer}>
+        <Text style={styles.weatherDetails}>Country: {country}</Text>
+        <Text style={styles.weatherDetails}>Latitude: {latitude}</Text>
+        <Text style={styles.weatherDetails}>Longitude: {longitude}</Text>
+      </View>
+      <View style={styles.funFactContainer}>
+        <Text style={styles.funFactTitle}>Fun Fact</Text>
+        <Text style={styles.funFact}>{funFact}</Text>
+      </View>
     </View>
   );
-} 
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: '#87CEEB',
+    padding: 20,
   },
-  myCustomText: {
-    fontSize: 30,
-    color: '#55AA55',
-    // textAlign: 'center',
+  cityName: {
+    fontSize: 40,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginTop: 50,
   },
-  darkMode: {
-    backgroundColor: '#333333',
+  temperature: {
+    fontSize: 80,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
   },
-  lightMode: {
-    backgroundColor: '#DDDDDD',
+  weatherDescription: {
+    fontSize: 20,
+    color: '#FFFFFF',
   },
-  myCustomImage: {
-    width: 200,
-    height: 200,
+  weatherIcon: {
+    width: 100,
+    height: 100,
+    marginVertical: 20,
+  },
+  inputContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    margin: 10,
+    justifyContent: 'space-between',
   },
   inputBox: {
-    borderBlockColor: 'red',
-    backgroundColor: 'gray',
-    fontSize: 24,
-    width: 300,
-    padding: 3,
-    margin: 12,
-  },
-  myLabelTest: {
-    color: '#000000',
+    borderColor: '#FFFFFF',
     backgroundColor: '#FFFFFF',
-    width: 300,
-    alignContent: 'center',
+    fontSize: 24,
+    width: 200,
+    padding: 10,
+    marginRight: 10,
   },
-  myFecthData: {
-    color: '#FFFFFF',
-    backgroundColor: '#000000',
-    width: 250,
-    alignContent: 'center',
+  weatherDetailsContainer: {
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    borderRadius: 10,
+    width: '100%',
+    marginBottom: 20,
+  },
+  weatherDetails: {
+    fontSize: 18,
+    color: '#333333',
+  },
+  funFactContainer: {
+    backgroundColor: '#FFD700',
+    padding: 20,
+    borderRadius: 10,
+    width: '100%',
+    marginBottom: 20,
+  },
+  funFactTitle: {
+    fontSize: 24,
+    color: '#333333',
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  funFact: {
+    fontSize: 18,
+    color: '#333333',
   },
 });
 
