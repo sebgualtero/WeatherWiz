@@ -37,6 +37,7 @@ function App(): React.JSX.Element {
 
   //getDeviceLocation(); breaks as it will keep calling the function - unkonwn cause
 
+  
 
   const getDeviceLocation = () => {
     GetLocation.getCurrentPosition({
