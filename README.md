@@ -2,7 +2,7 @@
 
 ![Artboard 1](https://github.com/user-attachments/assets/9721d164-5d10-44a9-8a1b-74dbe6c68797)
 
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).![Uploading Artboard 1.png…]()
+This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
 
 # Getting Started
