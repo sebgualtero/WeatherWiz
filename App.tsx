@@ -10,8 +10,10 @@ import {
   Modal,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
@@ -23,9 +25,6 @@ function ListItemRender({ dataItem }: any) {
   return <Text>{dataItem.text}</Text>;
 }
 
-
-
-
 function App(): React.JSX.Element {
   const [latitude, setLatitude] = useState(0);
   const [longitude, setLongitude] = useState(0);
@@ -34,10 +33,11 @@ function App(): React.JSX.Element {
   const [temperature, setTemperature] = useState(0);
   const [inputCity, setInputCity] = useState('');
   const [funFact, setFunFact] = useState('');
+  const [darkModeEnabled, setDarkModeEnabled] = useState(false);
 
-  //getDeviceLocation(); breaks as it will keep calling the function - unkonwn cause
-
-  
+  const toggleDarkMode = () => {
+    setDarkModeEnabled(previousState => !previousState);
+  };
 
   const getDeviceLocation = () => {
     GetLocation.getCurrentPosition({
@@ -59,11 +59,8 @@ function App(): React.JSX.Element {
   };
 
   useEffect(() => {
-
     getDeviceLocation();
     (async () => {
-
-
       let weather = await getWeatherData(latitude, longitude);
       setTemperature(weather[0]);
       weather = [];
@@ -80,8 +77,6 @@ function App(): React.JSX.Element {
   const handleInputCityChange = (event: any) => {
     setInputCity(event.nativeEvent.text);
   };
-
-  let darkModeEnabled = true;
 
   let dynamicStyles = darkModeEnabled ? styles.darkMode : styles.lightMode;
 
@@ -125,7 +120,10 @@ function App(): React.JSX.Element {
   };
 
   return (
-    <View style={{ ...dynamicStyles, ...styles.container }}>
+    <View style={[styles.container, dynamicStyles]}>
+      <TouchableOpacity style={styles.darkModeButton} onPress={toggleDarkMode}>
+        <Text style={styles.darkModeButtonText}>{darkModeEnabled ? 'Light Mode' : 'Dark Mode'}</Text>
+      </TouchableOpacity>
       <Text style={styles.cityName}>{city}</Text>
       <Text style={styles.temperature}>{temperature}°</Text>
       <Text style={styles.weatherDescription}>Sunny</Text>
@@ -162,6 +160,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#87CEEB',
     padding: 20,
+  },
+  darkModeButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    backgroundColor: '#FFFFFF',
+    padding: 10,
+    borderRadius: 20,
+  },
+  darkModeButtonText: {
+    fontSize: 16,
+    color: '#000000',
   },
   cityName: {
     fontSize: 40,
@@ -223,6 +233,13 @@ const styles = StyleSheet.create({
   funFact: {
     fontSize: 18,
     color: '#333333',
+  },
+  lightMode: {
+    backgroundColor: '#87CEEB',
+  },
+  darkMode: {
+    backgroundColor: '#333333',
+    color: '#FFFFFF',
   },
 });
 
